@@ -16,13 +16,9 @@ internal class Program
 {
     private static void Main()
     {
-        string host = "192.168.2.187";
+        // Drucker-Konfiguration
+        string host = "PRINTER_IP_HERE";
         int port = 9100;
-
-        //if (!PrinterConnectionCheck.PrinterReachable(host, port))
-        //{
-        //    throw new PrinterUnavailableException($"Printer{host}:{port} not reachable");
-        //}
 
         // TestObjekt
         var meinBeleg = new Beleg
@@ -68,7 +64,7 @@ internal class Program
             }
         };
 
-        bool bewirtung = false;
+        bool bewirtung = true;
         CustumorBonPrint(meinBeleg, bewirtung, host, port);
     }
 
@@ -237,7 +233,7 @@ internal class Program
 
         // Mwst 19%
         poList.Add(PrintObject.AddText(
-            meinBeleg.MwstZeichen = "A:",
+            "A:",
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
@@ -248,7 +244,7 @@ internal class Program
         ));
 
         poList.Add(PrintObject.AddText(
-          $"{meinBeleg.NettoEinzeln = 0.63m} A".PadLeft(44),
+          $"{0.63m:F2} A".PadLeft(44),
           PrintStyleObject.FontB,
           PrinterAlign.Left
         ));
@@ -256,7 +252,7 @@ internal class Program
 
         //mwst 7%
         poList.Add(PrintObject.AddText(
-             meinBeleg.MwstZeichen = "B:",
+             "B:",
              PrintStyleObject.FontB,
              PrinterAlign.Left
         ));
@@ -267,7 +263,7 @@ internal class Program
         ));
 
         poList.Add(PrintObject.AddText(
-          $"{meinBeleg.NettoEinzeln = 0.49m} B".PadLeft(44),
+          $"{0.49m:F2} B".PadLeft(44),
           PrintStyleObject.FontB,
           PrinterAlign.Left
         ));
@@ -353,8 +349,7 @@ internal class Program
         #region Bewirtungszusatz
 
         // Bewirtung Zusatz
-        bewirtung = true;
-        if (bewirtung == true)
+        if (bewirtung)
         {
             poList.Add(PrintObject.AddText(
                "Bewirtungsaufwand-Angaben:",
