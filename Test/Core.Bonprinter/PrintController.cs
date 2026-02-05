@@ -1,9 +1,6 @@
 ﻿using Core.Bonprinter.db;
-using ESCPOS_NET;
 using ESCPOS_NET.Emitters;
 using ESCPOS_NET.Utilities;
-using Microsoft.EntityFrameworkCore;
-using RawPrint.NetStd;
 using System.Text;
 
 namespace Core.Bonprinter

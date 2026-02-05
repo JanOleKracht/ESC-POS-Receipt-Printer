@@ -1,15 +1,7 @@
 ﻿using Core.Bonprinter;
-using Core.Bonprinter.db;
-using ESCPOS_NET.Emitters;
-using ESCPOS_NET.Emitters.BaseCommandValues;
-using Microsoft.Identity.Client;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using PrinterAlign = Core.Bonprinter.Align;
 
 internal class Program
