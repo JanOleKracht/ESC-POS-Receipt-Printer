@@ -60,71 +60,70 @@ internal class Program
         PrintReceipt(meinBeleg, bewirtung, host, port);
     }
 
-    private static void PrintReceipt(Beleg meinBeleg, bool bewirtung, string host, int port)
+    // Kopfzeile
+    private static List<PrintObject> BuildKopfzeile(Beleg beleg, byte[] logoBild)
     {
-        // Printer Connection
-        var pc = new PrintController(host, port.ToString());
-
-        string imagePath = Path.Combine("Img", "Test-Logo.png");
-        var pictureByte = File.ReadAllBytes(imagePath);
-
         var poList = new List<PrintObject>();
 
-        #region Kopfzeile
-
-        //Logo
-        poList.Add(PrintObject.AddImage(pictureByte, PrinterAlign.Center, 200));
+        // Logo
+        poList.Add(PrintObject.AddImage(logoBild, PrinterAlign.Center, 200));
         poList.Add(PrintObject.NewLineCreator());
 
         // Adresse
-        foreach (var pos in meinBeleg._AnschriftBelegdaten)
+        foreach (var pos in beleg._AnschriftBelegdaten)
         {
             poList.Add(PrintObject.AddText(
                 pos.Name,
                 PrintStyleObject.FontB,
                 PrinterAlign.Center
-                ));
+            ));
             poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.AddText(pos.Straße,
+            poList.Add(PrintObject.AddText(
+                pos.Straße,
                 PrintStyleObject.FontB,
                 PrinterAlign.Center
-                ));
+            ));
             poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.AddText(pos.Ort,
+            poList.Add(PrintObject.AddText(
+                pos.Ort,
                 PrintStyleObject.FontB,
                 PrinterAlign.Center
-                ));
+            ));
             poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.AddText($"Tel:{pos.TelefonNr}",
+            poList.Add(PrintObject.AddText(
+                $"Tel:{pos.TelefonNr}",
                 PrintStyleObject.FontB,
                 PrinterAlign.Center
-                ));
+            ));
             poList.Add(PrintObject.NewLineCreator());
         }
         poList.Add(PrintObject.NewLineCreator());
 
-        #endregion Kopfzeile
+        return poList;
+    }
 
-        #region Bezichnung und Datum
+    private static List<PrintObject> BuildBelegInfo(Beleg beleg)
+    {
+        var poList = new List<PrintObject>();
 
-        //Kopfzeile
+        // Belegtyp, Nummer, Zahlart
         poList.Add(PrintObject.AddText(
-            meinBeleg.BelegTypIdName,
+            beleg.BelegTypIdName,
             PrintStyleObject.Bold | PrintStyleObject.DoubleHeight,
             PrinterAlign.Center
         ));
 
         poList.Add(PrintObject.AddText(
-            meinBeleg.BelegNummer,
+            beleg.BelegNummer,
             PrintStyleObject.Bold | PrintStyleObject.DoubleHeight,
             PrinterAlign.Center
         ));
 
         poList.Add(PrintObject.AddText(
-            meinBeleg.Zahlart,
+            beleg.Zahlart,
             PrintStyleObject.Bold | PrintStyleObject.DoubleHeight,
             PrinterAlign.Center
         ));
@@ -132,9 +131,9 @@ internal class Program
         poList.Add(PrintObject.NewLineCreator());
         poList.Add(PrintObject.NewLineCreator());
 
-        //Datum
+        // Datum
         poList.Add(PrintObject.AddText(
-            meinBeleg.CreationTime.ToString(),
+            beleg.CreationTime.ToString(),
             PrintStyleObject.None,
             PrinterAlign.Left
         ));
@@ -149,7 +148,28 @@ internal class Program
         poList.Add(PrintObject.NewLineCreator());
         poList.Add(PrintObject.AddLineSeparator());
 
-        #endregion Bezichnung und Datum
+        return poList;
+    }
+
+    private static void PrintReceipt(Beleg meinBeleg, bool bewirtung, string host, int port)
+    {
+        // Printer Connection
+        var pc = new PrintController(host, port.ToString());
+
+        string imagePath = Path.Combine("Img", "Test-Logo.png");
+        var pictureByte = File.ReadAllBytes(imagePath);
+
+        var poList = new List<PrintObject>();
+
+        // Kopfzeile mit Logo und Adresse
+        poList.AddRange(BuildKopfzeile(meinBeleg, pictureByte));
+        poList.Add(PrintObject.NewLineCreator());
+
+        // Beleginfo (Typ, Nummer, Datum)
+        poList.AddRange(BuildBelegInfo(meinBeleg));
+
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddLineSeparator());
 
         #region Rechnung
 
