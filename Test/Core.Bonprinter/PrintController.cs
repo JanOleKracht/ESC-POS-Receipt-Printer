@@ -4,6 +4,7 @@ using ESCPOS_NET.Emitters;
 using ESCPOS_NET.Utilities;
 using Microsoft.EntityFrameworkCore;
 using RawPrint.NetStd;
+using System.Text;
 
 namespace Core.Bonprinter
 {
@@ -100,7 +101,10 @@ namespace Core.Bonprinter
                 //  Text
                 if (!string.IsNullOrWhiteSpace(po.Text))
                 {
-                    cmds.Add(e.Print(po.Text));
+                    //cmds.Add(e.Print(po.Text));
+                    var codePage = Encoding.GetEncoding(850);
+                    var bytes = codePage.GetBytes(po.Text);
+                    cmds.Add(bytes);
                 }
 
                 // Trennzeile
