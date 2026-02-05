@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using PrinterAlign = Core.Bonprinter.Align;
 
 internal class Program
@@ -9,7 +10,7 @@ internal class Program
     private static void Main()
     {
         // Drucker-Konfiguration
-        string host = "PRINTER_IP_HERE";
+        string host = "PRINTER_IP_HERE";  // z.B. "192.168.1.100"
         int port = 9100;
 
         // TestObjekt
@@ -34,16 +35,17 @@ internal class Program
 
             _TechnischeBelegdaten = new List<TechnischeBelegdaten>
             {
-               new TechnischeBelegdaten
-               {
-                   Transaktionsnummer= 12345678,
-                   SeriennummerKasse = "Kasse-01-Ser12345",
-                   TransaktionAnfang = DateTime.Now.AddSeconds(-120),
-                   TransaktionEnde = DateTime.Now,
-                   Signaturzähler = "584",
-                   Prüfwert = "AQHT45/GFd=="
-               }
+                new TechnischeBelegdaten
+                {
+                    Transaktionsnummer = 12345678,
+                    SeriennummerKasse = "Kasse-01-Ser12345",
+                    TransaktionAnfang = DateTime.Now.AddSeconds(-120),
+                    TransaktionEnde = DateTime.Now,
+                    Signaturzähler = "584",
+                    Prüfwert = "AQHT45/GFd=="
+                }
             },
+
             _AnschriftBelegdaten = new List<AnschriftBelegdaten>
             {
                 new AnschriftBelegdaten
@@ -60,7 +62,33 @@ internal class Program
         PrintReceipt(meinBeleg, bewirtung, host, port);
     }
 
-    // Kopfzeile
+    private static void PrintReceipt(Beleg meinBeleg, bool bewirtung, string host, int port)
+    {
+        var pc = new PrintController(host, port.ToString());
+
+        string imagePath = Path.Combine("Img", "Test-Logo.png");
+        var pictureByte = File.ReadAllBytes(imagePath);
+
+        var poList = new List<PrintObject>();
+
+        // Beleg zusammenbauen
+        poList.AddRange(BuildKopfzeile(meinBeleg, pictureByte));
+        poList.AddRange(BuildBelegInfo(meinBeleg));
+        poList.AddRange(BuildPositionen(meinBeleg));
+        poList.AddRange(BuildBezahlung(meinBeleg));
+        poList.AddRange(BuildFooter(meinBeleg));
+
+        if (bewirtung)
+        {
+            poList.AddRange(BuildBewirtung());
+        }
+
+        pc.PrintBon(poList);
+
+        Thread.Sleep(200);
+        Console.WriteLine("Beleg gesendet.");
+    }
+
     private static List<PrintObject> BuildKopfzeile(Beleg beleg, byte[] logoBild)
     {
         var poList = new List<PrintObject>();
@@ -105,7 +133,6 @@ internal class Program
         return poList;
     }
 
-    // BelegInfo (Belegtyp, Nummer, Datum)
     private static List<PrintObject> BuildBelegInfo(Beleg beleg)
     {
         var poList = new List<PrintObject>();
@@ -152,31 +179,12 @@ internal class Program
         return poList;
     }
 
-    private static void PrintReceipt(Beleg meinBeleg, bool bewirtung, string host, int port)
+    private static List<PrintObject> BuildPositionen(Beleg beleg)
     {
-        // Printer Connection
-        var pc = new PrintController(host, port.ToString());
-
-        string imagePath = Path.Combine("Img", "Test-Logo.png");
-        var pictureByte = File.ReadAllBytes(imagePath);
-
         var poList = new List<PrintObject>();
-
-        // Kopfzeile mit Logo und Adresse
-        poList.AddRange(BuildKopfzeile(meinBeleg, pictureByte));
-        poList.Add(PrintObject.NewLineCreator());
-
-        // Beleginfo (Typ, Nummer, Datum)
-        poList.AddRange(BuildBelegInfo(meinBeleg));
-
-        poList.Add(PrintObject.NewLineCreator());
-        poList.Add(PrintObject.AddLineSeparator());
-
-        #region Rechnung
-
-        //Artikel Auflistung
         int maxBreite = 42;
-        foreach (var pos in meinBeleg.BelegPositionen)
+
+        foreach (var pos in beleg.BelegPositionen)
         {
             string preisString = $"{pos.Brutto:F2} {pos.MwstZeichen}";
             string text = pos.PositionsText;
@@ -209,7 +217,7 @@ internal class Program
                 PrinterAlign.Left
             ));
 
-            // Menge
+            // Menge anzeigen wenn > 1
             if (pos.Menge > 1)
             {
                 decimal einzelPreis = pos.Brutto / pos.Menge;
@@ -226,11 +234,14 @@ internal class Program
 
         poList.Add(PrintObject.AddLineSeparator());
 
-        #endregion Rechnung
+        return poList;
+    }
 
-        #region Bezahlung
+    private static List<PrintObject> BuildBezahlung(Beleg beleg)
+    {
+        var poList = new List<PrintObject>();
 
-        //Mwst berechnen
+        // Netto
         poList.Add(PrintObject.AddText(
             "Netto:",
             PrintStyleObject.FontB,
@@ -238,58 +249,55 @@ internal class Program
         ));
 
         poList.Add(PrintObject.AddText(
-           $"{meinBeleg.NettoGesamt}".PadLeft(48),
-           PrintStyleObject.FontB,
-           PrinterAlign.Left
+            $"{beleg.NettoGesamt:F2}".PadLeft(48),
+            PrintStyleObject.FontB,
+            PrinterAlign.Left
         ));
         poList.Add(PrintObject.NewLineCreator());
 
-        // Mwst 19%
+        // MwSt 19%
         poList.Add(PrintObject.AddText(
             "A:",
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
         poList.Add(PrintObject.AddText(
-            $"{meinBeleg.GetMwstProzent(1)}% Mwst:",
+            $"{beleg.GetMwstProzent(1)}% Mwst:",
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
-
         poList.Add(PrintObject.AddText(
-          $"{0.63m:F2} A".PadLeft(44),
-          PrintStyleObject.FontB,
-          PrinterAlign.Left
+            $"{0.63m:F2} A".PadLeft(44),
+            PrintStyleObject.FontB,
+            PrinterAlign.Left
         ));
         poList.Add(PrintObject.NewLineCreator());
 
-        //mwst 7%
+        // MwSt 7%
         poList.Add(PrintObject.AddText(
-             "B:",
-             PrintStyleObject.FontB,
-             PrinterAlign.Left
-        ));
-        poList.Add(PrintObject.AddText(
-            $" {meinBeleg.GetMwstProzent(2)}% Mwst:",
+            "B:",
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
-
         poList.Add(PrintObject.AddText(
-          $"{0.49m:F2} B".PadLeft(44),
-          PrintStyleObject.FontB,
-          PrinterAlign.Left
+            $" {beleg.GetMwstProzent(2)}% Mwst:",
+            PrintStyleObject.FontB,
+            PrinterAlign.Left
+        ));
+        poList.Add(PrintObject.AddText(
+            $"{0.49m:F2} B".PadLeft(44),
+            PrintStyleObject.FontB,
+            PrinterAlign.Left
         ));
         poList.Add(PrintObject.NewLineCreator());
         poList.Add(PrintObject.AddLineSeparator());
         poList.Add(PrintObject.AddLineSeparator());
         poList.Add(PrintObject.NewLineCreator());
 
-        // GesamtPreis
+        // Gesamtpreis
         int maxBreiteSumme = 21;
         string summeLabel = "Summe:";
-        string summeWert = meinBeleg.BruttoGesamt.ToString("F2");
-
+        string summeWert = beleg.BruttoGesamt.ToString("F2");
         string ganzeSummenZeile = summeLabel + summeWert.PadLeft(maxBreiteSumme - summeLabel.Length);
 
         poList.Add(PrintObject.AddText(
@@ -301,55 +309,54 @@ internal class Program
         poList.Add(PrintObject.NewLineCreator());
         poList.Add(PrintObject.NewLineCreator());
 
-        #endregion Bezahlung
+        return poList;
+    }
 
-        #region Footer
+    private static List<PrintObject> BuildFooter(Beleg beleg)
+    {
+        var poList = new List<PrintObject>();
 
-        // Abschiedstext?
+        // Verabschiedung
         poList.Add(PrintObject.AddText(
-          "Es bediente Sie:",
-          PrintStyleObject.Bold,
-          PrinterAlign.Center
+            "Es bediente Sie:",
+            PrintStyleObject.Bold,
+            PrinterAlign.Center
         ));
-
         poList.Add(PrintObject.NewLineCreator());
 
         poList.Add(PrintObject.AddText(
-         "Team Krumbad",
-         PrintStyleObject.Bold,
-         PrinterAlign.Center
+            "Team Krumbad",
+            PrintStyleObject.Bold,
+            PrinterAlign.Center
         ));
-
         poList.Add(PrintObject.NewLineCreator());
 
         poList.Add(PrintObject.AddText(
-         "im Restaurant",
-         PrintStyleObject.Bold,
-         PrinterAlign.Center
+            "im Restaurant",
+            PrintStyleObject.Bold,
+            PrinterAlign.Center
         ));
-
         poList.Add(PrintObject.NewLineCreator());
 
-        // QR Code Technische Belegdaten
-
-        if (meinBeleg._TechnischeBelegdaten != null)
+        // QR Code mit technischen Belegdaten
+        if (beleg._TechnischeBelegdaten != null)
         {
             string qrDatenString = "";
-            foreach (var pos in meinBeleg._TechnischeBelegdaten)
+            foreach (var pos in beleg._TechnischeBelegdaten)
             {
                 qrDatenString =
-                $"SN: {pos.SeriennummerKasse};\r\n" +
-                $"Trans-Nr.: {pos.Transaktionsnummer};\r\n" +
-                $"Start: {pos.TransaktionAnfang:s};\r\n" +
-                $"Ende: {pos.TransaktionEnde:s};\r\n" +
-                $"Sig-Z: {pos.Signaturzähler};\r\n" +
-                $"Code: {pos.Prüfwert}";
+                    $"SN: {pos.SeriennummerKasse};\r\n" +
+                    $"Trans-Nr.: {pos.Transaktionsnummer};\r\n" +
+                    $"Start: {pos.TransaktionAnfang:s};\r\n" +
+                    $"Ende: {pos.TransaktionEnde:s};\r\n" +
+                    $"Sig-Z: {pos.Signaturzähler};\r\n" +
+                    $"Code: {pos.Prüfwert}";
             }
 
             poList.Add(PrintObject.AddQRCode(
-        qrDatenString,
-         PrinterAlign.Center
-       ));
+                qrDatenString,
+                PrinterAlign.Center
+            ));
         }
 
         poList.Add(PrintObject.NewLineCreator());
@@ -357,73 +364,60 @@ internal class Program
         poList.Add(PrintObject.AddLineSeparator());
         poList.Add(PrintObject.NewLineCreator());
 
-        #endregion Footer
+        return poList;
+    }
 
-        #region Bewirtungszusatz
+    private static List<PrintObject> BuildBewirtung()
+    {
+        var poList = new List<PrintObject>();
 
-        // Bewirtung Zusatz
-        if (bewirtung)
-        {
-            poList.Add(PrintObject.AddText(
-               "Bewirtungsaufwand-Angaben:",
-               PrintStyleObject.Bold,
-               PrinterAlign.Left
-            ));
+        poList.Add(PrintObject.AddText(
+            "Bewirtungsaufwand-Angaben:",
+            PrintStyleObject.Bold,
+            PrinterAlign.Left
+        ));
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.NewLineCreator());
-            poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddText(
+            "Bewirtete Personen:",
+            PrintStyleObject.Bold | PrintStyleObject.FontB,
+            PrinterAlign.Left
+        ));
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.AddText(
-               "Bewirtete Personen:",
-               PrintStyleObject.Bold | PrintStyleObject.FontB,
-               PrinterAlign.Left
-            ));
+        poList.Add(PrintObject.AddText(
+            "Anlass der Bewirtung:",
+            PrintStyleObject.Bold | PrintStyleObject.FontB,
+            PrinterAlign.Left
+        ));
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.NewLineCreator());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddText(
+            "Betrag:",
+            PrintStyleObject.Bold | PrintStyleObject.FontB,
+            PrinterAlign.Left
+        ));
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.AddLineSeparatorComplete());
+        poList.Add(PrintObject.NewLineCreator());
+        poList.Add(PrintObject.NewLineCreator());
 
-            poList.Add(PrintObject.AddText(
-               "Anlass der Bewirtung:",
-               PrintStyleObject.Bold | PrintStyleObject.FontB,
-               PrinterAlign.Left
-            ));
+        poList.Add(PrintObject.AddText(
+            "Unterschrift:",
+            PrintStyleObject.Bold | PrintStyleObject.FontB,
+            PrinterAlign.Left
+        ));
 
-            poList.Add(PrintObject.NewLineCreator());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.NewLineCreator());
-
-            poList.Add(PrintObject.AddText(
-               "Betrag:",
-               PrintStyleObject.Bold | PrintStyleObject.FontB,
-               PrinterAlign.Left
-            ));
-
-            poList.Add(PrintObject.NewLineCreator());
-            poList.Add(PrintObject.AddLineSeparatorComplete());
-            poList.Add(PrintObject.NewLineCreator());
-            poList.Add(PrintObject.NewLineCreator());
-
-            poList.Add(PrintObject.AddText(
-               "Unterschrift:",
-               PrintStyleObject.Bold | PrintStyleObject.FontB,
-               PrinterAlign.Left
-            ));
-        }
-
-        #endregion Bewirtungszusatz
-
-        pc.PrintBon(poList);
-
-        // Timeout wichtig, sonst kein Druck!
-        Thread.Sleep(200);
-        var printObj = poList.FirstOrDefault();
-
-        Console.WriteLine("Gesendet.");
+        return poList;
     }
 }
