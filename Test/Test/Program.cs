@@ -65,10 +65,10 @@ internal class Program
         };
 
         bool bewirtung = true;
-        CustumorBonPrint(meinBeleg, bewirtung, host, port);
+        PrintReceipt(meinBeleg, bewirtung, host, port);
     }
 
-    private static void CustumorBonPrint(Beleg meinBeleg, bool bewirtung, string host, int port)
+    private static void PrintReceipt(Beleg meinBeleg, bool bewirtung, string host, int port)
     {
         // Printer Connection
         var pc = new PrintController(host, port.ToString());
