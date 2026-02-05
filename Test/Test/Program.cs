@@ -105,6 +105,7 @@ internal class Program
         return poList;
     }
 
+    // BelegInfo (Belegtyp, Nummer, Datum)
     private static List<PrintObject> BuildBelegInfo(Beleg beleg)
     {
         var poList = new List<PrintObject>();
