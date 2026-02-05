@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using Test;
 using PrinterAlign = Core.Bonprinter.Align;
 
 internal class Program
