@@ -27,10 +27,11 @@ internal class Program
 
             BelegPositionen = new List<BelegPosition>
             {
-                new BelegPosition { Menge = 2, PositionsText = "MOHNKUCHEN", Brutto = 2.98m, MwstZeichen = "A" },
-                new BelegPosition { Menge = 1, PositionsText = "SAHNE",      Brutto = 0.99m, MwstZeichen = "A" },
-                new BelegPosition { Menge = 2, PositionsText = "KAFFEE",     Brutto = 5.98m, MwstZeichen = "B" },
-                new BelegPosition { Menge = 3, PositionsText = "Espresso",   Brutto = 1.47m, MwstZeichen = "B" }
+                new BelegPosition { Menge = 2, PositionsText = "Jürgens Helles", Brutto = 13m, MwstZeichen = "B" },
+                new BelegPosition { Menge = 2, PositionsText = "Aperol Spritz", Brutto = 14.98m, MwstZeichen = "B" },
+                new BelegPosition { Menge = 2, PositionsText = "Rib Eye Steak", Brutto = 54.99m, MwstZeichen = "A" },
+                new BelegPosition { Menge = 1, PositionsText = "Ceaser Salat", Brutto = 14.99m, MwstZeichen = "A" },
+                new BelegPosition { Menge = 1, PositionsText = "Veggie Cheeseburger", Brutto = 18.99m, MwstZeichen = "A" }
             },
 
             _TechnischeBelegdaten = new List<TechnischeBelegdaten>
