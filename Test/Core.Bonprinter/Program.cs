@@ -10,7 +10,7 @@ internal class Program
     private static void Main()
     {
         // Drucker-Konfiguration
-        string host = "PRINTER_IP_HERE";  // z.B. "192.168.1.100"
+        string host = "192.168.2.187";  // z.B. "192.168.1.100"
         int port = 9100;
 
         // TestObjekt
@@ -20,8 +20,8 @@ internal class Program
             BelegNummer = "Nr.RE17-753",
             CreationTime = DateTime.Now,
             Zahlart = "(BAR)",
-            NettoGesamt = 10.31m,
-            BruttoGesamt = 11.44m,
+            NettoGesamt = 101.91m,
+            BruttoGesamt = 116.95m,
             MwstSatz = 1,
             MwstZeichen = "A",
 
@@ -97,7 +97,6 @@ internal class Program
         // Logo
         poList.Add(PrintObject.AddImage(logoBild, PrinterAlign.Center, 200));
         poList.Add(PrintObject.NewLineCreator());
-
         // Adresse
         foreach (var pos in beleg._AnschriftBelegdaten)
         {
@@ -268,7 +267,7 @@ internal class Program
             PrinterAlign.Left
         ));
         poList.Add(PrintObject.AddText(
-            $"{0.63m:F2} A".PadLeft(44),
+            $"{14.21m:F2} A".PadLeft(44),
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
@@ -286,7 +285,7 @@ internal class Program
             PrinterAlign.Left
         ));
         poList.Add(PrintObject.AddText(
-            $"{0.49m:F2} B".PadLeft(44),
+            $"{1.83m:F2} B".PadLeft(44),
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
@@ -326,7 +325,7 @@ internal class Program
         poList.Add(PrintObject.NewLineCreator());
 
         poList.Add(PrintObject.AddText(
-            "Team Krumbad",
+            "das FFD Team",
             PrintStyleObject.Bold,
             PrinterAlign.Center
         ));
