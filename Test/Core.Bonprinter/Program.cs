@@ -10,7 +10,7 @@ internal class Program
     private static void Main()
     {
         // Drucker-Konfiguration
-        string host = "192.168.2.187";  // z.B. "192.168.1.100"
+        string host = "YOUR_PRINTER_IP";  // // e.g. "192.168.1.100"
         int port = 9100;
 
         // TestObjekt
