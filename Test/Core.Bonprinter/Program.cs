@@ -20,8 +20,8 @@ internal class Program
             BelegNummer = "Nr.RE17-753",
             CreationTime = DateTime.Now,
             Zahlart = "(BAR)",
-            NettoGesamt = 101.91m,
-            BruttoGesamt = 116.95m,
+            //NettoGesamt = 101.91m,
+            //BruttoGesamt = 116.95m,
             MwstSatz = 1,
             MwstZeichen = "A",
 
@@ -60,6 +60,10 @@ internal class Program
         };
 
         bool bewirtung = true;
+
+        meinBeleg.BerechneSumme();
+        Console.WriteLine($"NettoGesamt: {meinBeleg.NettoGesamt}  BruttoGesamt: {meinBeleg.BruttoGesamt}");
+        Console.WriteLine($"Mwst: {meinBeleg.MwstSatz}");
         PrintReceipt(meinBeleg, bewirtung, host, port);
     }
 
@@ -267,7 +271,7 @@ internal class Program
             PrinterAlign.Left
         ));
         poList.Add(PrintObject.AddText(
-            $"{14.21m:F2} A".PadLeft(44),
+            $"{beleg.MwstBetragA:F2} A".PadLeft(44),
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));
@@ -285,7 +289,7 @@ internal class Program
             PrinterAlign.Left
         ));
         poList.Add(PrintObject.AddText(
-            $"{1.83m:F2} B".PadLeft(44),
+            $"{beleg.MwstBetragB:F2} B".PadLeft(44),
             PrintStyleObject.FontB,
             PrinterAlign.Left
         ));

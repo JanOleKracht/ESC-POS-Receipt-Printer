@@ -24,6 +24,9 @@ namespace Core.Bonprinter
         public int MwstSatz { get; set; }
         public string? MwstZeichen { get; set; }
 
+        public decimal MwstBetragA { get; set; }
+        public decimal MwstBetragB { get; set; }
+
         public bool Bewirtung { get; set; } = false;
 
         public List<BelegPosition> BelegPositionen { get; set; }
@@ -50,6 +53,8 @@ namespace Core.Bonprinter
         {
             decimal bruttoSumme = 0m;
             decimal nettoSumme = 0m;
+            decimal mwstA = 0m;
+            decimal mwstB = 0m;
 
             foreach (var position in BelegPositionen)
             {
@@ -74,7 +79,20 @@ namespace Core.Bonprinter
 
                 bruttoSumme += brutto;
                 nettoSumme += netto;
+
+                if (position.MwstZeichen == "A")
+                {
+                    mwstA += brutto - netto;
+                }
+                else if (position.MwstZeichen == "B")
+                {
+                    mwstB += brutto - netto;
+                }
             }
+            BruttoGesamt = bruttoSumme;
+            NettoGesamt = nettoSumme;
+            MwstBetragA = mwstA;
+            MwstBetragB = mwstB;
         }
     }
 }
