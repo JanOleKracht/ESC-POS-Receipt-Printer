@@ -45,5 +45,36 @@ namespace Core.Bonprinter
 
             return 0;
         }
+
+        public void BerechneSumme()
+        {
+            decimal bruttoSumme = 0m;
+            decimal nettoSumme = 0m;
+
+            foreach (var position in BelegPositionen)
+            {
+                decimal brutto = position.Brutto;
+
+                int mwstProzent = 0;
+
+                if (position.MwstZeichen == "A")
+                {
+                    mwstProzent = 19;
+                }
+                else if (position.MwstZeichen == "B")
+                {
+                    mwstProzent = 7;
+                }
+
+                decimal faktor = 1m + (mwstProzent / 100m);
+
+                decimal netto = brutto / faktor;
+                netto = Math.Round(netto, 2);
+                position.Netto = netto;
+
+                bruttoSumme += brutto;
+                nettoSumme += netto;
+            }
+        }
     }
 }
