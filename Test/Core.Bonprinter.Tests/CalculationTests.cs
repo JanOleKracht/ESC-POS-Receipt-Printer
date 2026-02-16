@@ -31,8 +31,8 @@ namespace Core.Bonprinter.Tests
             {
                 BelegPositionen = new List<BelegPosition>
               {
-                  new BelegPosition {Menge=2,Brutto=20m, MwstZeichen="A", Netto=16.81m },
-                  new BelegPosition {Menge=1,Brutto=10.5m, MwstZeichen="B", Netto=9.82m },
+                  new BelegPosition {Menge=2,Brutto=20m, MwstZeichen="A" },
+                  new BelegPosition {Menge=1,Brutto=10.5m, MwstZeichen="B"},
                 }
             };
 
@@ -51,8 +51,8 @@ namespace Core.Bonprinter.Tests
             {
                 BelegPositionen = new List<BelegPosition>
                 {
-                    new BelegPosition {Menge=2,Brutto=20m, MwstZeichen="A", Netto=16.81m },
-                    new BelegPosition {Menge=1,Brutto=10.5m, MwstZeichen="B", Netto=9.82m },
+                    new BelegPosition {Menge=2,Brutto=20m, MwstZeichen="A" },
+                    new BelegPosition {Menge=1,Brutto=10.5m, MwstZeichen="B" },
                 }
             };
             // Act
@@ -70,8 +70,8 @@ namespace Core.Bonprinter.Tests
             {
                 BelegPositionen = new List<BelegPosition>
                 {
-                    new BelegPosition { Menge = 2, Brutto = 20m, MwstZeichen = "A", Netto = 16.81m },
-                    new BelegPosition { Menge = 1, Brutto = 10.5m, MwstZeichen = "B", Netto = 9.82m },
+                    new BelegPosition { Menge = 2, Brutto = 20m, MwstZeichen = "A" },
+                    new BelegPosition { Menge = 1, Brutto = 10.5m, MwstZeichen = "B" },
                 }
             };
 
@@ -83,7 +83,7 @@ namespace Core.Bonprinter.Tests
         }
 
         [Fact]
-        public void CaculateSumme_PositionIsNull_EverythingSouldBeNull()
+        public void CalculateSumme_EmptyPositions_EverythingShouldBeZero()
         {
             //Arrange
             var beleg = new Beleg
